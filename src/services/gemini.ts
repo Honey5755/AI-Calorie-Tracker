@@ -71,6 +71,44 @@ function sanitize(raw: any): Nutrition {
   };
 }
 
+const MAX_RETRIES = 2;
+const MAX_WAIT_MS = 8000; // if Gemini asks us to wait longer than this, fail fast to mock
+
+const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** Parse a retry delay (ms) from a 429/503 response, else exponential backoff. */
+function retryDelayMs(res: Response, bodyText: string, attempt: number): number {
+  const header = res.headers.get('retry-after');
+  if (header && /^\d+$/.test(header)) return Number(header) * 1000;
+  const match = bodyText.match(/"retryDelay":\s*"(\d+(?:\.\d+)?)s"/);
+  if (match) return Math.ceil(Number(match[1]) * 1000);
+  return 1500 * Math.pow(2, attempt); // 1.5s, 3s, ...
+}
+
+/** POST with one or two retries on transient 429/503 (honoring the server's retry hint). */
+async function postWithRetry(body: unknown): Promise<Response> {
+  const url = `${ENDPOINT}?key=${encodeURIComponent(GEMINI_API_KEY)}`;
+  for (let attempt = 0; ; attempt++) {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (res.ok) return res;
+
+    const txt = await res.text().catch(() => '');
+    const transient = res.status === 429 || res.status === 503;
+    if (transient && attempt < MAX_RETRIES) {
+      const wait = retryDelayMs(res, txt, attempt);
+      if (wait <= MAX_WAIT_MS) {
+        await delay(wait);
+        continue; // retry
+      }
+    }
+    throw new Error(`Gemini ${res.status}: ${txt.slice(0, 200)}`);
+  }
+}
+
 /** Analyze a base64-encoded image with Gemini. Throws on network/parse failure. */
 export async function analyzeWithGemini(base64: string, mimeType = 'image/jpeg'): Promise<Nutrition> {
   if (!isGeminiConfigured()) throw new Error('Gemini API key not configured');
@@ -89,16 +127,7 @@ export async function analyzeWithGemini(base64: string, mimeType = 'image/jpeg')
     },
   };
 
-  const res = await fetch(`${ENDPOINT}?key=${encodeURIComponent(GEMINI_API_KEY)}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-
-  if (!res.ok) {
-    const txt = await res.text().catch(() => '');
-    throw new Error(`Gemini ${res.status}: ${txt.slice(0, 200)}`);
-  }
+  const res = await postWithRetry(body);
 
   const json = await res.json();
   const text: string | undefined = json?.candidates?.[0]?.content?.parts?.[0]?.text;
