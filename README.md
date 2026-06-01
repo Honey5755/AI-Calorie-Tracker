@@ -34,33 +34,46 @@ npm run web        # opens the app in your browser (or: npx expo start)
 
 Then press `w` for web, `i` for iOS simulator, or scan the QR code with **Expo Go**.
 
-### Enable real AI (free)
+### Enable real AI
 
-The app works immediately in **demo mode**. To turn on live recognition:
+The app works immediately in **demo mode**. To turn on live recognition, pick **one**
+provider — copy `.env.example` → `.env`, fill in a key, then restart with `npx expo start -c`
+(env vars are baked in at bundle time). The Profile tab shows the active engine.
 
-1. Get a **free** Gemini API key at <https://aistudio.google.com/apikey>.
-2. Copy `.env.example` → `.env` and paste your key:
-   ```
-   EXPO_PUBLIC_GEMINI_API_KEY=your_key_here
-   ```
-3. Restart `npx expo start`. The Profile tab shows **“Gemini Vision (live)”** when active.
+**Claude (Anthropic):**
+```
+EXPO_PUBLIC_ANTHROPIC_API_KEY=sk-ant-...      # console.anthropic.com/settings/keys
+# EXPO_PUBLIC_CLAUDE_MODEL=claude-haiku-4-5   # optional: cheaper/faster than the default opus
+```
+
+**Gemini (free):**
+```
+EXPO_PUBLIC_GEMINI_API_KEY=AIza...            # aistudio.google.com/apikey
+```
+
+If both are set, Claude wins; force one with `EXPO_PUBLIC_AI_PROVIDER=claude|gemini|mock`.
 
 ## 🧠 AI integration
 
-Food recognition lives behind a single service (`src/services/ai.ts`) so the UI never
-talks to a provider directly:
+Food recognition is a **pluggable provider** behind a single service (`src/services/ai.ts`),
+so the UI never talks to a model directly:
 
-- **`gemini.ts`** sends the base64 image + a nutrition prompt to `gemini-2.0-flash`, using
-  Gemini's **structured output** (`responseMimeType: application/json` + `responseSchema`)
-  to force a typed `{ name, servingDesc, calories, protein, carbs, fat, confidence }` result.
-- Responses are **sanitized**: numbers are clamped to sane ranges, and if the model's
-  calorie figure disagrees badly with its own macros, we recompute from macros (4/4/9 kcal/g).
-- **`ai.ts`** decides Gemini vs. mock based on whether a key is set, and **falls back to mock
-  on any network/parse error** — the demo never dead-ends.
+- **`claude.ts`** — official `@anthropic-ai/sdk` (`claude-opus-4-8` by default) with a vision
+  image block, **structured outputs** (`output_config.format` + JSON schema) to force a typed
+  `{ name, servingDesc, calories, protein, carbs, fat, confidence }` result, and **prompt
+  caching** (`cache_control`) on the system prompt. Runs in Expo web via `dangerouslyAllowBrowser`;
+  the SDK auto-retries 429/5xx.
+- **`gemini.ts`** — `gemini-2.0-flash` via REST with `responseSchema` structured output and a
+  manual 429/503 backoff retry.
+- **`sanitize.ts`** — one shared prompt + schema + sanitizer for both providers: numbers are
+  clamped to sane ranges, and if the model's calorie figure disagrees badly with its own macros,
+  it's recomputed from macros (4/4/9 kcal/g).
+- **`ai.ts`** — auto-selects **Claude → Gemini → mock**, and **falls back to mock on any
+  network/parse error** so the demo never dead-ends.
 
-> **Security note:** the key is read from `EXPO_PUBLIC_GEMINI_API_KEY` and the call is made
-> client-side. That's fine for a demo; the production fix is a thin server proxy that holds
-> the key. This is documented in `gemini.ts`.
+> **Security note:** keys are read from `EXPO_PUBLIC_*` env vars and calls are made client-side.
+> Fine for a demo; the production fix is a thin server proxy that holds the key. Documented in
+> `claude.ts` / `gemini.ts`.
 
 ## 🏗️ Architecture
 
@@ -76,7 +89,7 @@ src/
     add.tsx                 # pick → analyze → review → save (modal)
   components/                # CalorieRing, MacroRings, ProgressRing, MealCard,
                              # WeeklyBarChart, StreakBadge, Card, Screen, EmptyState
-  services/                  # ai.ts (entry), gemini.ts, mockAnalyzer.ts
+  services/                  # ai.ts (entry/router), claude.ts, gemini.ts, sanitize.ts, mockAnalyzer.ts
   store/                     # useDiaryStore.ts (zustand + persist), seed.ts
   lib/                       # nutrition.ts, streak.ts, date.ts, types.ts (pure logic)
   theme/                     # colors, spacing, radius, fonts
@@ -89,7 +102,7 @@ that powers both the calorie ring and the three macro rings.
 ## 🛠️ Tech stack
 
 React Native · Expo (SDK 56) · Expo Router · TypeScript · Zustand · AsyncStorage ·
-react-native-svg · expo-image-picker · Google Gemini Vision.
+react-native-svg · expo-image-picker · Anthropic Claude (`@anthropic-ai/sdk`) · Google Gemini Vision.
 
 ## 🤔 Reflection
 

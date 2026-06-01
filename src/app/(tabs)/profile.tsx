@@ -113,8 +113,8 @@ export default function ProfileScreen() {
             <Text style={styles.aiStatus}>{aiStatusLabel()}</Text>
             <Text style={styles.aiHint}>
               {live
-                ? 'Photos are analyzed by Google Gemini Vision.'
-                : 'Add EXPO_PUBLIC_GEMINI_API_KEY to .env for live recognition. Mock data is used meanwhile.'}
+                ? 'Photos are analyzed by a live vision model.'
+                : 'Add a Claude or Gemini API key to .env for live recognition. Mock data is used meanwhile.'}
             </Text>
           </View>
         </View>
