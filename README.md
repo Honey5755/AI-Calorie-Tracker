@@ -43,7 +43,7 @@ provider — copy `.env.example` → `.env`, fill in a key, then restart with `n
 **Claude (Anthropic):**
 ```
 EXPO_PUBLIC_ANTHROPIC_API_KEY=sk-ant-...      # console.anthropic.com/settings/keys
-# EXPO_PUBLIC_CLAUDE_MODEL=claude-haiku-4-5   # optional: cheaper/faster than the default opus
+# EXPO_PUBLIC_CLAUDE_MODEL=claude-opus-4-8    # optional: more capable than the default haiku
 ```
 
 **Gemini (free):**
@@ -58,7 +58,7 @@ If both are set, Claude wins; force one with `EXPO_PUBLIC_AI_PROVIDER=claude|gem
 Food recognition is a **pluggable provider** behind a single service (`src/services/ai.ts`),
 so the UI never talks to a model directly:
 
-- **`claude.ts`** — official `@anthropic-ai/sdk` (`claude-opus-4-8` by default) with a vision
+- **`claude.ts`** — official `@anthropic-ai/sdk` (`claude-haiku-4-5` by default) with a vision
   image block, **structured outputs** (`output_config.format` + JSON schema) to force a typed
   `{ name, servingDesc, calories, protein, carbs, fat, confidence }` result, and **prompt
   caching** (`cache_control`) on the system prompt. Runs in Expo web via `dangerouslyAllowBrowser`;

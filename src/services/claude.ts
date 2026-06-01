@@ -13,9 +13,9 @@ import { NUTRITION_JSON_SCHEMA, NUTRITION_PROMPT, sanitizeNutrition } from './sa
  */
 
 export const CLAUDE_API_KEY = process.env.EXPO_PUBLIC_ANTHROPIC_API_KEY ?? '';
-// Per Anthropic guidance, default to the most capable model; override for cost/speed
-// (e.g. EXPO_PUBLIC_CLAUDE_MODEL=claude-haiku-4-5).
-const MODEL = process.env.EXPO_PUBLIC_CLAUDE_MODEL ?? 'claude-opus-4-8';
+// Default to Haiku — fast and cheap, and strong at food vision. Override for more
+// capability with e.g. EXPO_PUBLIC_CLAUDE_MODEL=claude-opus-4-8.
+const MODEL = process.env.EXPO_PUBLIC_CLAUDE_MODEL ?? 'claude-haiku-4-5';
 
 const ALLOWED_MEDIA = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 
