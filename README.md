@@ -51,7 +51,13 @@ EXPO_PUBLIC_ANTHROPIC_API_KEY=sk-ant-...      # console.anthropic.com/settings/k
 EXPO_PUBLIC_GEMINI_API_KEY=AIza...            # aistudio.google.com/apikey
 ```
 
-If both are set, Claude wins; force one with `EXPO_PUBLIC_AI_PROVIDER=claude|gemini|mock`.
+**NVIDIA NIM (free dev credits):**
+```
+EXPO_PUBLIC_NVIDIA_API_KEY=nvapi-...          # build.nvidia.com
+# EXPO_PUBLIC_NVIDIA_MODEL=meta/llama-3.2-11b-vision-instruct   # optional
+```
+
+Auto-picks **Claude → Gemini → NVIDIA → mock**; force one with `EXPO_PUBLIC_AI_PROVIDER=claude|gemini|nvidia|mock`.
 
 ## 🧠 AI integration
 
@@ -65,6 +71,9 @@ so the UI never talks to a model directly:
   the SDK auto-retries 429/5xx.
 - **`gemini.ts`** — `gemini-2.0-flash` via REST with `responseSchema` structured output and a
   manual 429/503 backoff retry.
+- **`nvidia.ts`** — NVIDIA NIM (OpenAI-compatible REST, Llama 3.2 Vision by default). Downscales
+  the photo with `expo-image-manipulator` to fit NVIDIA's inline-image limit, then parses the
+  JSON from the reply with a fence-tolerant extractor.
 - **`sanitize.ts`** — one shared prompt + schema + sanitizer for both providers: numbers are
   clamped to sane ranges, and if the model's calorie figure disagrees badly with its own macros,
   it's recomputed from macros (4/4/9 kcal/g).
@@ -89,7 +98,7 @@ src/
     add.tsx                 # pick → analyze → review → save (modal)
   components/                # CalorieRing, MacroRings, ProgressRing, MealCard,
                              # WeeklyBarChart, StreakBadge, Card, Screen, EmptyState
-  services/                  # ai.ts (entry/router), claude.ts, gemini.ts, sanitize.ts, mockAnalyzer.ts
+  services/                  # ai.ts (router), claude.ts, gemini.ts, nvidia.ts, sanitize.ts, mockAnalyzer.ts
   store/                     # useDiaryStore.ts (zustand + persist), seed.ts
   lib/                       # nutrition.ts, streak.ts, date.ts, types.ts (pure logic)
   theme/                     # colors, spacing, radius, fonts

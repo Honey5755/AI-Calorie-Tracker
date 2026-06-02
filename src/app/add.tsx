@@ -60,16 +60,16 @@ export default function AddScreen() {
       if (result.canceled || !result.assets?.length) return;
       const asset = result.assets[0];
       setImageUri(asset.uri);
-      runAnalysis(asset.base64 ?? '', asset.mimeType ?? 'image/jpeg');
+      runAnalysis(asset.base64 ?? '', asset.mimeType ?? 'image/jpeg', asset.uri);
     } catch {
       // ignore — user can retry or enter manually
     }
   };
 
-  const runAnalysis = async (base64: string, mimeType: string) => {
+  const runAnalysis = async (base64: string, mimeType: string, uri?: string) => {
     setStage('analyzing');
     setAiError(undefined);
-    const res = await analyzeFoodImage(base64, mimeType);
+    const res = await analyzeFoodImage(base64, mimeType, { uri });
     setForm(res.nutrition);
     setUsedAI(res.usedAI);
     setAiError(res.error);

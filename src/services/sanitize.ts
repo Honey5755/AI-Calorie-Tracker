@@ -32,6 +32,25 @@ Return ONLY JSON matching the schema:
 - confidence: 0..1 how confident you are in the identification
 Be realistic. If multiple foods are present, sum them and name the overall meal.`;
 
+/**
+ * Pull a JSON object out of a model's text response, even if it's wrapped in
+ * ```json fences``` or surrounded by prose. Used for providers that don't
+ * guarantee strict structured output (e.g. NVIDIA NIM vision models).
+ */
+export function extractJsonObject(text: string): any {
+  const cleaned = text.replace(/```(?:json)?/gi, '').trim();
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    const start = cleaned.indexOf('{');
+    const end = cleaned.lastIndexOf('}');
+    if (start !== -1 && end > start) {
+      return JSON.parse(cleaned.slice(start, end + 1));
+    }
+    throw new Error('No JSON object found in response');
+  }
+}
+
 function clampNum(v: unknown, min = 0, max = 100000): number {
   const n = typeof v === 'number' ? v : Number(v);
   if (!isFinite(n)) return 0;
