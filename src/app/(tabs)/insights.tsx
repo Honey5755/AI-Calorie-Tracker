@@ -1,9 +1,11 @@
+import { useRouter } from 'expo-router';
 import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Card, SectionLabel } from '@/components/Card';
 import { Screen } from '@/components/Screen';
 import { StreakBadge } from '@/components/StreakBadge';
+import { StreakHeatmap } from '@/components/StreakHeatmap';
 import { WeeklyBarChart, type DayDatum } from '@/components/WeeklyBarChart';
 import { lastNDays } from '@/lib/date';
 import { sumTotals } from '@/lib/nutrition';
@@ -21,10 +23,16 @@ function Stat({ label, value, accent }: { label: string; value: string; accent?:
 }
 
 export default function InsightsScreen() {
+  const router = useRouter();
   const entries = useDiaryStore((s) => s.entries);
   const goals = useDiaryStore((s) => s.goals);
 
   const days = useMemo(() => lastNDays(7), []);
+  const caloriesByDay = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const e of entries) m.set(e.dateISO, (m.get(e.dateISO) ?? 0) + (e.calories || 0));
+    return m;
+  }, [entries]);
 
   const { chartData, avgCalories, daysOnTrack, avgMacros, loggedCount } = useMemo(() => {
     const byDay = new Map<string, ReturnType<typeof sumTotals>>();
@@ -115,6 +123,15 @@ export default function InsightsScreen() {
             </View>
           ))}
         </View>
+      </Card>
+
+      <Card style={styles.section}>
+        <SectionLabel right={<Text style={styles.goalTag}>tap a day</Text>}>Activity</SectionLabel>
+        <StreakHeatmap
+          caloriesByDay={caloriesByDay}
+          goal={goals.calories}
+          onPressDay={(d) => router.push(`/day/${d}` as any)}
+        />
       </Card>
     </Screen>
   );

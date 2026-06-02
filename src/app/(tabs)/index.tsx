@@ -9,6 +9,7 @@ import { MealCard } from '@/components/MealCard';
 import { Screen } from '@/components/Screen';
 import { StreakBadge } from '@/components/StreakBadge';
 import { relativeDayLabel, todayISO } from '@/lib/date';
+import { groupByMeal, MEAL_EMOJI } from '@/lib/meals';
 import { sumTotals } from '@/lib/nutrition';
 import { currentStreak } from '@/lib/streak';
 import { colors, font, spacing } from '@/theme';
@@ -33,6 +34,7 @@ export default function DiaryScreen() {
     [entries, today]
   );
   const totals = useMemo(() => sumTotals(todays), [todays]);
+  const groups = useMemo(() => groupByMeal(todays), [todays]);
   const streak = useMemo(() => currentStreak(entries), [entries]);
 
   const confirmDelete = (id: string, name: string) => {
@@ -86,9 +88,19 @@ export default function DiaryScreen() {
             subtitle="Tap the camera button to snap your food and let AI log the macros."
           />
         ) : (
-          <View style={{ gap: spacing.md }}>
-            {todays.map((e) => (
-              <MealCard key={e.id} entry={e} onLongPress={() => confirmDelete(e.id, e.name)} />
+          <View style={{ gap: spacing.lg }}>
+            {groups.map((g) => (
+              <View key={g.type} style={{ gap: spacing.sm }}>
+                <View style={styles.mealHeader}>
+                  <Text style={styles.mealTitle}>
+                    {MEAL_EMOJI[g.type]}  {g.type}
+                  </Text>
+                  <Text style={styles.mealKcal}>{Math.round(g.calories)} kcal</Text>
+                </View>
+                {g.entries.map((e) => (
+                  <MealCard key={e.id} entry={e} onLongPress={() => confirmDelete(e.id, e.name)} />
+                ))}
+              </View>
             ))}
             <Text style={styles.hint}>Tip: long-press a meal to remove it.</Text>
           </View>
@@ -112,5 +124,8 @@ const styles = StyleSheet.create({
   macroWrap: { marginTop: spacing.xl, alignSelf: 'stretch' },
   meals: { marginTop: spacing.xl },
   count: { color: colors.textFaint, fontSize: font.size.sm, fontWeight: '600' },
+  mealHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 2 },
+  mealTitle: { color: colors.text, fontSize: font.size.md, fontWeight: '700' },
+  mealKcal: { color: colors.textFaint, fontSize: font.size.sm, fontWeight: '600' },
   hint: { color: colors.textFaint, fontSize: font.size.xs, textAlign: 'center', marginTop: 4 },
 });
