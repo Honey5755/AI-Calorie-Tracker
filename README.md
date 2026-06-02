@@ -53,8 +53,8 @@ EXPO_PUBLIC_GEMINI_API_KEY=AIza...            # aistudio.google.com/apikey
 
 **NVIDIA NIM (free dev credits):**
 ```
-EXPO_PUBLIC_NVIDIA_API_KEY=nvapi-...          # build.nvidia.com
-# EXPO_PUBLIC_NVIDIA_MODEL=meta/llama-3.2-11b-vision-instruct   # optional
+EXPO_PUBLIC_NVIDIA_API_KEY=nvapi-...          # build.nvidia.com (pick a "Free Endpoint" multimodal model)
+# EXPO_PUBLIC_NVIDIA_MODEL=meta/llama-4-maverick-17b-128e-instruct   # optional
 ```
 
 Auto-picks **Claude → Gemini → NVIDIA → mock**; force one with `EXPO_PUBLIC_AI_PROVIDER=claude|gemini|nvidia|mock`.
@@ -71,7 +71,7 @@ so the UI never talks to a model directly:
   the SDK auto-retries 429/5xx.
 - **`gemini.ts`** — `gemini-2.0-flash` via REST with `responseSchema` structured output and a
   manual 429/503 backoff retry.
-- **`nvidia.ts`** — NVIDIA NIM (OpenAI-compatible REST, Llama 3.2 Vision by default). Downscales
+- **`nvidia.ts`** — NVIDIA NIM (OpenAI-compatible REST, Llama 4 Maverick multimodal by default). Downscales
   the photo with `expo-image-manipulator` to fit NVIDIA's inline-image limit, then parses the
   JSON from the reply with a fence-tolerant extractor.
 - **`sanitize.ts`** — one shared prompt + schema + sanitizer for both providers: numbers are

@@ -18,7 +18,10 @@ import { NUTRITION_PROMPT, extractJsonObject, sanitizeNutrition } from './saniti
 const ENDPOINT = 'https://integrate.api.nvidia.com/v1/chat/completions';
 
 export const NVIDIA_API_KEY = process.env.EXPO_PUBLIC_NVIDIA_API_KEY ?? '';
-const MODEL = process.env.EXPO_PUBLIC_NVIDIA_MODEL ?? 'meta/llama-3.2-90b-vision-instruct';
+// Must be a "Free Endpoint" multimodal model on build.nvidia.com (the Llama 3.2
+// vision models are "Downloadable" only — no hosted API). Llama 4 Maverick is
+// both multimodal and free-hosted.
+const MODEL = process.env.EXPO_PUBLIC_NVIDIA_MODEL ?? 'meta/llama-4-maverick-17b-128e-instruct';
 
 export function isNvidiaConfigured(): boolean {
   return NVIDIA_API_KEY.trim().length > 0;
