@@ -12,10 +12,12 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { GlowBackdrop } from '@/components/GlowBackdrop';
 import { GradientButton } from '@/components/GradientButton';
 import { analyzeFoodImage, aiStatusLabel } from '@/services/ai';
 import type { Nutrition } from '@/lib/types';
@@ -34,6 +36,8 @@ function haptic(style: Haptics.ImpactFeedbackStyle = Haptics.ImpactFeedbackStyle
 export default function AddScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
+  const colWidth = Math.min(width, 480);
   const addEntry = useDiaryStore((s) => s.addEntry);
 
   const [stage, setStage] = useState<Stage>('pick');
@@ -109,47 +113,51 @@ export default function AddScreen() {
 
   return (
     <View style={[styles.root, { paddingTop: insets.top + 6 }]}>
-      <View style={styles.topBar}>
-        <Text style={styles.topTitle}>
-          {stage === 'review' ? 'Review meal' : 'Add food'}
-        </Text>
+      <GlowBackdrop />
+      <View style={[styles.topBar, { width: colWidth }]}>
+        <Text style={styles.topTitle}>{stage === 'review' ? 'Review meal' : 'Add food'}</Text>
         <Pressable onPress={close} hitSlop={12} style={styles.closeBtn}>
           <Ionicons name="close" size={22} color={colors.text} />
         </Pressable>
       </View>
 
       <ScrollView
-        contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + 120 }}
+        style={styles.scroll}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 120 }]}
         showsVerticalScrollIndicator={false}>
-        {stage === 'pick' && <PickStage onPick={pick} onManual={startManual} />}
+        <View style={{ width: colWidth, padding: spacing.lg }}>
+          {stage === 'pick' && <PickStage onPick={pick} onManual={startManual} />}
 
-        {stage === 'analyzing' && (
-          <View style={styles.analyzing}>
-            {imageUri ? <Image source={{ uri: imageUri }} style={styles.previewBig} contentFit="cover" /> : null}
-            <View style={styles.analyzeBadge}>
-              <ActivityIndicator color={colors.brand} />
-              <Text style={styles.analyzeText}>Analyzing your meal…</Text>
-              <Text style={styles.analyzeSub}>{aiStatusLabel()}</Text>
+          {stage === 'analyzing' && (
+            <View style={styles.analyzing}>
+              {imageUri ? <Image source={{ uri: imageUri }} style={styles.previewBig} contentFit="cover" /> : null}
+              <View style={styles.analyzeBadge}>
+                <ActivityIndicator color={colors.brand} />
+                <Text style={styles.analyzeText}>Analyzing your meal…</Text>
+                <Text style={styles.analyzeSub}>{aiStatusLabel()}</Text>
+              </View>
             </View>
-          </View>
-        )}
+          )}
 
-        {stage === 'review' && (
-          <ReviewStage
-            form={form}
-            imageUri={imageUri}
-            usedAI={usedAI}
-            aiError={aiError}
-            onChangeText={(patch) => setForm((f) => ({ ...f, ...patch }))}
-            onChangeCalories={(v) => setForm((f) => ({ ...f, calories: Math.max(0, v) }))}
-            onChangeMacro={setMacro}
-          />
-        )}
+          {stage === 'review' && (
+            <ReviewStage
+              form={form}
+              imageUri={imageUri}
+              usedAI={usedAI}
+              aiError={aiError}
+              onChangeText={(patch) => setForm((f) => ({ ...f, ...patch }))}
+              onChangeCalories={(v) => setForm((f) => ({ ...f, calories: Math.max(0, v) }))}
+              onChangeMacro={setMacro}
+            />
+          )}
+        </View>
       </ScrollView>
 
       {stage === 'review' && (
         <View style={[styles.footer, { paddingBottom: insets.bottom + 12 }]}>
-          <GradientButton label="Add to diary" icon="checkmark" onPress={save} />
+          <View style={{ width: colWidth, paddingHorizontal: spacing.lg }}>
+            <GradientButton label="Add to diary" icon="checkmark" onPress={save} />
+          </View>
         </View>
       )}
     </View>
@@ -303,7 +311,9 @@ function StepBtn({
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.bg },
+  root: { flex: 1, backgroundColor: colors.bg, alignItems: 'center' },
+  scroll: { flex: 1, alignSelf: 'stretch', backgroundColor: 'transparent' },
+  scrollContent: { alignItems: 'center' },
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -361,14 +371,14 @@ const styles = StyleSheet.create({
 
   // analyzing
   analyzing: { alignItems: 'center', gap: spacing.xl, paddingTop: spacing.xl },
-  previewBig: { width: '100%', height: 240, borderRadius: radius.lg },
+  previewBig: { width: '100%', aspectRatio: 4 / 3, borderRadius: radius.lg, backgroundColor: colors.surfaceAlt },
   analyzeBadge: { alignItems: 'center', gap: 8 },
   analyzeText: { color: colors.text, fontSize: font.size.lg, fontWeight: '700' },
   analyzeSub: { color: colors.textDim, fontSize: font.size.sm },
 
   // review
   reviewImageWrap: { borderRadius: radius.lg, overflow: 'hidden' },
-  reviewImage: { width: '100%', height: 200 },
+  reviewImage: { width: '100%', aspectRatio: 4 / 3, backgroundColor: colors.surfaceAlt },
   aiTag: {
     position: 'absolute',
     top: 10,
@@ -436,7 +446,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    paddingHorizontal: spacing.lg,
+    alignItems: 'center',
     paddingTop: spacing.md,
     backgroundColor: colors.bg,
     borderTopWidth: 1,
