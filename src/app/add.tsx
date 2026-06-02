@@ -226,7 +226,7 @@ function ReviewStage({
           <Image source={{ uri: imageUri }} style={styles.reviewImage} contentFit="cover" />
           <View style={[styles.aiTag, { backgroundColor: usedAI ? colors.brand : colors.warning }]}>
             <Ionicons name={usedAI ? 'sparkles' : 'flask'} size={12} color={colors.black} />
-            <Text style={styles.aiTagText}>{usedAI ? 'AI detected' : 'Demo estimate'}</Text>
+            <Text style={styles.aiTagText}>{usedAI ? 'AI detected from image' : 'Demo estimate'}</Text>
           </View>
         </View>
       ) : null}
