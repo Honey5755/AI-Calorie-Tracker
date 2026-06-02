@@ -17,6 +17,10 @@ import { NUTRITION_PROMPT, extractJsonObject, sanitizeNutrition } from './saniti
  */
 
 const ENDPOINT = 'https://integrate.api.nvidia.com/v1/chat/completions';
+// On web we must go through the local CORS proxy (NVIDIA blocks browser calls).
+// Native (Expo Go) calls NVIDIA directly. Override the proxy URL if needed.
+const PROXY_URL = process.env.EXPO_PUBLIC_NVIDIA_PROXY_URL ?? 'http://localhost:8787';
+const USE_PROXY = Platform.OS === 'web';
 
 export const NVIDIA_API_KEY = process.env.EXPO_PUBLIC_NVIDIA_API_KEY ?? '';
 // Must be a "Free Endpoint" multimodal model on build.nvidia.com (the Llama 3.2
@@ -79,22 +83,23 @@ export async function analyzeWithNvidia(
     ],
   };
 
-  let res: Response;
-  try {
-    res = await fetch(ENDPOINT, {
-      method: 'POST',
-      headers: {
+  // Web → local proxy (adds the key + CORS). Native → NVIDIA directly.
+  const url = USE_PROXY ? PROXY_URL : ENDPOINT;
+  const headers: Record<string, string> = USE_PROXY
+    ? { 'Content-Type': 'application/json' }
+    : {
         Authorization: `Bearer ${NVIDIA_API_KEY}`,
         'Content-Type': 'application/json',
         Accept: 'application/json',
-      },
-      body: JSON.stringify(body),
-    });
+      };
+
+  let res: Response;
+  try {
+    res = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body) });
   } catch (e) {
-    // NVIDIA's API does not send CORS headers, so a browser blocks it ("Failed to fetch").
-    if (Platform.OS === 'web') {
+    if (USE_PROXY) {
       throw new Error(
-        "NVIDIA can't be reached from a web browser (CORS). Use Gemini on web, or run the app on a phone via Expo Go."
+        'NVIDIA proxy not reachable — run `npm run nvidia-proxy` in a second terminal (then retry).'
       );
     }
     throw e;

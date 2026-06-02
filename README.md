@@ -56,6 +56,12 @@ EXPO_PUBLIC_GEMINI_API_KEY=AIza...            # aistudio.google.com/apikey
 EXPO_PUBLIC_NVIDIA_API_KEY=nvapi-...          # build.nvidia.com (pick a "Free Endpoint" multimodal model)
 # EXPO_PUBLIC_NVIDIA_MODEL=meta/llama-4-maverick-17b-128e-instruct   # optional
 ```
+> NVIDIA's API blocks direct browser calls (no CORS). **On web**, run the bundled proxy in a
+> second terminal — it holds the key server-side and adds CORS:
+> ```
+> npm run nvidia-proxy      # keep running alongside `npx expo start`
+> ```
+> On a **phone via Expo Go**, no proxy is needed (native calls aren't subject to CORS).
 
 Auto-picks **Claude → Gemini → NVIDIA → mock**; force one with `EXPO_PUBLIC_AI_PROVIDER=claude|gemini|nvidia|mock`.
 
