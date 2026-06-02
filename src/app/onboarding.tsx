@@ -1,9 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Animated, Easing, Pressable, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { GlowBackdrop } from '@/components/GlowBackdrop';
+import { GradientButton } from '@/components/GradientButton';
 import { ACTIVITY_OPTIONS, GOAL_OPTIONS, computeGoals, type Activity, type GoalKind, type Profile, type Sex } from '@/lib/goals';
 import { macroMeta } from '@/theme';
 import { colors, font, radius, spacing } from '@/theme';
@@ -61,8 +63,29 @@ export default function Onboarding() {
     setP((prev) => ({ ...prev, [key]: n }));
   };
 
+  const { width } = useWindowDimensions();
+  const colWidth = Math.min(width, 460);
+
+  // Fade + slide each step in.
+  const anim = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    anim.setValue(0);
+    Animated.timing(anim, {
+      toValue: 1,
+      duration: 320,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: false,
+    }).start();
+  }, [step, anim]);
+  const stepAnim = {
+    opacity: anim,
+    transform: [{ translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) }],
+  };
+
   return (
-    <View style={[styles.root, { paddingTop: insets.top + spacing.lg }]}>
+    <View style={styles.root}>
+      <GlowBackdrop />
+      <View style={[styles.column, { width: colWidth, paddingTop: insets.top + spacing.lg }]}>
       <View style={styles.header}>
         <Pressable onPress={back} disabled={step === 0} hitSlop={12} style={styles.headerBtn}>
           {step > 0 && <Ionicons name="chevron-back" size={22} color={colors.text} />}
@@ -75,7 +98,7 @@ export default function Onboarding() {
         </Pressable>
       </View>
 
-      <View style={styles.body}>
+      <Animated.View style={[styles.body, stepAnim]}>
         {step === 0 && (
           <Stage title="What's your sex?" subtitle="Used to estimate your metabolism.">
             <View style={styles.rowGap}>
@@ -144,13 +167,15 @@ export default function Onboarding() {
             </View>
           </Stage>
         )}
-      </View>
+      </Animated.View>
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.lg }]}>
-        <Pressable onPress={next} style={({ pressed }) => [styles.cta, pressed && { opacity: 0.9 }]}>
-          <Text style={styles.ctaText}>{isLast ? 'Start tracking' : 'Continue'}</Text>
-          {!isLast && <Ionicons name="arrow-forward" size={20} color={colors.black} />}
-        </Pressable>
+        <GradientButton
+          label={isLast ? 'Start tracking' : 'Continue'}
+          icon={isLast ? 'checkmark' : 'arrow-forward'}
+          onPress={next}
+        />
+      </View>
       </View>
     </View>
   );
@@ -197,7 +222,8 @@ function NumberField({
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: spacing.lg },
+  root: { flex: 1, backgroundColor: colors.bg, alignItems: 'center' },
+  column: { flex: 1, paddingHorizontal: spacing.lg },
   header: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginBottom: spacing.xxl },
   headerBtn: { width: 44, alignItems: 'center', justifyContent: 'center' },
   skip: { color: colors.textDim, fontSize: font.size.sm, fontWeight: '600' },

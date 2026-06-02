@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { GradientButton } from '@/components/GradientButton';
 import { analyzeFoodImage, aiStatusLabel } from '@/services/ai';
 import type { Nutrition } from '@/lib/types';
 import { caloriesFromMacros } from '@/lib/nutrition';
@@ -148,10 +149,7 @@ export default function AddScreen() {
 
       {stage === 'review' && (
         <View style={[styles.footer, { paddingBottom: insets.bottom + 12 }]}>
-          <Pressable onPress={save} style={({ pressed }) => [styles.saveBtn, pressed && { opacity: 0.85 }]}>
-            <Ionicons name="checkmark" size={20} color={colors.black} />
-            <Text style={styles.saveText}>Add to diary</Text>
-          </Pressable>
+          <GradientButton label="Add to diary" icon="checkmark" onPress={save} />
         </View>
       )}
     </View>
