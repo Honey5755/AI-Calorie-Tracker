@@ -9,21 +9,22 @@ history charts, and streak tracking.
 
 ## ✨ Features
 
-- 📷 **AI food recognition** — photograph or upload a meal; Google **Gemini Vision** identifies the dish and estimates calories + protein/carbs/fat.
+- 📷 **AI food recognition** — photograph or upload a meal; **Claude / Gemini / NVIDIA** vision identifies the dish and estimates calories + protein/carbs/fat.
 - ✍️ **Review & edit** — every AI result is fully editable before saving (name, serving, calories, macros) with an AI-confidence indicator.
-- 📔 **Daily diary** — running calorie total with a hero **calorie ring** and per-meal cards.
-- 🎯 **Macro progress rings** — protein, carbs and fat each get an SVG ring vs. your goal.
+- 🧭 **Personalized onboarding** — a 5-step quiz computes your calorie + macro targets via the **Mifflin–St Jeor** formula.
+- 📔 **Daily diary** — running total with an **animated calorie ring**, meals grouped by **breakfast / lunch / dinner**.
+- 🎯 **Macro progress rings** — protein, carbs and fat each get an animated SVG ring vs. your goal.
 - 📊 **Weekly insights** — 7-day calorie bar chart with a goal line, daily average, days-on-track, and average macros.
-- 🔥 **Streak tracking** — consecutive days with a logged meal, plus your best streak.
-- ⚙️ **Editable goals** — set calorie & macro targets on the Profile tab (sensible defaults out of the box).
+- 🔥 **Streak tracking** — a GitHub-style **calendar heatmap**; tap any day to open its full breakdown.
+- ⚙️ **Editable goals** — tweak targets on the Profile tab, or re-run the goal quiz anytime.
 - 💾 **Offline-first** — everything persists locally (AsyncStorage / localStorage). Works with **zero backend**.
 - 🧪 **Graceful fallback** — no API key? The app runs in demo mode with realistic mock results, so it never breaks.
 
 ## 📸 Screenshots
 
-| Diary | Insights | Add (AI) | Review | Profile |
-|---|---|---|---|---|
-| ![Diary](docs/screenshots/01-diary.png) | ![Insights](docs/screenshots/02-insights.png) | ![Add](docs/screenshots/03-add.png) | ![Review](docs/screenshots/04-review.png) | ![Profile](docs/screenshots/05-profile.png) |
+| Onboarding | Diary | Insights | Day detail | AI review | Profile |
+|---|---|---|---|---|---|
+| ![Onboarding](docs/screenshots/01-onboarding.png) | ![Diary](docs/screenshots/02-diary.png) | ![Insights](docs/screenshots/03-insights.png) | ![Day](docs/screenshots/04-day.png) | ![AI review](docs/screenshots/05-ai-review.png) | ![Profile](docs/screenshots/06-profile.png) |
 
 ## 🚀 Getting started
 
@@ -102,11 +103,13 @@ src/
       insights.tsx          # weekly chart, stats, streak
       profile.tsx           # editable goals + AI status
     add.tsx                 # pick → analyze → review → save (modal)
-  components/                # CalorieRing, MacroRings, ProgressRing, MealCard,
-                             # WeeklyBarChart, StreakBadge, Card, Screen, EmptyState
+    onboarding.tsx          # 5-step goal quiz (Mifflin–St Jeor)
+    day/[date].tsx          # tap-through detail for any past day
+  components/                # CalorieRing, MacroRings, ProgressRing, MealCard, WeeklyBarChart,
+                             # StreakBadge, StreakHeatmap, Card, Screen, EmptyState
   services/                  # ai.ts (router), claude.ts, gemini.ts, nvidia.ts, sanitize.ts, mockAnalyzer.ts
   store/                     # useDiaryStore.ts (zustand + persist), seed.ts
-  lib/                       # nutrition.ts, streak.ts, date.ts, types.ts (pure logic)
+  lib/                       # nutrition, streak, meals, goals, date, useCountUp, types (pure logic)
   theme/                     # colors, spacing, radius, fonts
 ```
 
@@ -116,8 +119,8 @@ that powers both the calorie ring and the three macro rings.
 
 ## 🛠️ Tech stack
 
-React Native · Expo (SDK 56) · Expo Router · TypeScript · Zustand · AsyncStorage ·
-react-native-svg · expo-image-picker · Anthropic Claude (`@anthropic-ai/sdk`) · Google Gemini Vision.
+React Native · Expo (SDK 56) · Expo Router · TypeScript · Zustand · AsyncStorage · react-native-svg ·
+expo-image-picker · expo-image-manipulator · Anthropic Claude (`@anthropic-ai/sdk`) · Google Gemini · NVIDIA NIM.
 
 ## 🤔 Reflection
 
