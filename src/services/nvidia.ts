@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 
 import type { Nutrition } from '@/lib/types';
@@ -78,15 +79,26 @@ export async function analyzeWithNvidia(
     ],
   };
 
-  const res = await fetch(ENDPOINT, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${NVIDIA_API_KEY}`,
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-    },
-    body: JSON.stringify(body),
-  });
+  let res: Response;
+  try {
+    res = await fetch(ENDPOINT, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${NVIDIA_API_KEY}`,
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+  } catch (e) {
+    // NVIDIA's API does not send CORS headers, so a browser blocks it ("Failed to fetch").
+    if (Platform.OS === 'web') {
+      throw new Error(
+        "NVIDIA can't be reached from a web browser (CORS). Use Gemini on web, or run the app on a phone via Expo Go."
+      );
+    }
+    throw e;
+  }
 
   if (!res.ok) {
     const txt = await res.text().catch(() => '');

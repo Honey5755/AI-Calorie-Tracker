@@ -27,6 +27,7 @@ find "$DEST" -maxdepth 1 -type f \( -name '*.jsonl' -o -name '*.md' \) -exec per
     s/\bAQ\.[0-9A-Za-z_\-]{20,}/[REDACTED_API_KEY]/g;
     s/ya29\.[0-9A-Za-z_\-]{20,}/[REDACTED_TOKEN]/g;
     s/\bsk-[A-Za-z0-9_\-]{20,}/[REDACTED_API_KEY]/g;
+    s/\bnvapi-[A-Za-z0-9_\-]{20,}/[REDACTED_API_KEY]/g;
     s/\bgh[pousr]_[A-Za-z0-9]{20,}/[REDACTED_TOKEN]/g;
     s/\bAKIA[0-9A-Z]{16}\b/[REDACTED_AWS_KEY]/g;
   ' {} +
