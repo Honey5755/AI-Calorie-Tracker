@@ -41,6 +41,13 @@ export default function AddScreen() {
   const [usedAI, setUsedAI] = useState(false);
   const [aiError, setAiError] = useState<string | undefined>();
 
+  // Close safely: go back if there's history, else jump to the Diary tab
+  // (avoids the GO_BACK warning when /add is opened/reloaded directly).
+  const close = () => {
+    if (router.canGoBack()) router.back();
+    else router.replace('/');
+  };
+
   const pick = async (mode: 'camera' | 'library') => {
     try {
       if (mode === 'camera' && Platform.OS !== 'web') {
@@ -88,7 +95,7 @@ export default function AddScreen() {
     const name = form.name.trim() || 'Food';
     addEntry({ ...form, name }, { imageUri, source: usedAI ? 'ai' : 'manual' });
     haptic(Haptics.ImpactFeedbackStyle.Heavy);
-    router.back();
+    close();
   };
 
   const setMacro = (m: MacroKey, v: number) => {
@@ -105,7 +112,7 @@ export default function AddScreen() {
         <Text style={styles.topTitle}>
           {stage === 'review' ? 'Review meal' : 'Add food'}
         </Text>
-        <Pressable onPress={() => router.back()} hitSlop={12} style={styles.closeBtn}>
+        <Pressable onPress={close} hitSlop={12} style={styles.closeBtn}>
           <Ionicons name="close" size={22} color={colors.text} />
         </Pressable>
       </View>
