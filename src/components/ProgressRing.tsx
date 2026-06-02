@@ -31,7 +31,7 @@ export function ProgressRing({
   trackColor = colors.track,
   children,
   rounded = true,
-  animate = false,
+  animate = true,
 }: Props) {
   const r = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * r;
@@ -58,8 +58,14 @@ export function ProgressRing({
       if (t < 1) rafRef.current = requestAnimationFrame(tick);
     };
     rafRef.current = requestAnimationFrame(tick);
+    // Guarantee we land on the final value even if rAF is throttled/paused.
+    const settle = setTimeout(() => {
+      fromRef.current = target;
+      setShown(target);
+    }, duration + 60);
     return () => {
       if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+      clearTimeout(settle);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [target, animate]);

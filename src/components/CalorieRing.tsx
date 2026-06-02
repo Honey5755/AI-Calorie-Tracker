@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import { progress } from '@/lib/nutrition';
+import { useCountUp } from '@/lib/useCountUp';
 import { colors, font } from '@/theme';
 import { ProgressRing } from './ProgressRing';
 
@@ -12,8 +13,8 @@ type Props = {
 
 /** Big hero ring: calories remaining vs goal. */
 export function CalorieRing({ consumed, goal, size = 220 }: Props) {
-  const remaining = Math.max(0, goal - consumed);
   const over = consumed > goal;
+  const remaining = useCountUp(Math.max(0, goal - consumed));
   const pct = progress(consumed, goal);
   const ringColor = over ? colors.danger : colors.brand;
 
