@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { addDays, todayISO } from '@/lib/date';
+import { computeGoals, type Profile } from '@/lib/goals';
 import { sumTotals } from '@/lib/nutrition';
 import type { DayTotals, FoodEntry, Goals, Nutrition } from '@/lib/types';
 import { buildSeedEntries } from './seed';
@@ -21,6 +22,8 @@ function makeId(): string {
 type DiaryState = {
   entries: FoodEntry[];
   goals: Goals;
+  profile?: Profile;
+  onboarded: boolean;
   hydrated: boolean;
   seeded: boolean;
 
@@ -29,6 +32,7 @@ type DiaryState = {
   removeEntry: (id: string) => void;
   updateEntry: (id: string, patch: Partial<Nutrition>) => void;
   setGoals: (g: Partial<Goals>) => void;
+  completeOnboarding: (profile: Profile) => void;
   resetAll: () => void;
   seedIfEmpty: () => void;
 
@@ -42,6 +46,8 @@ export const useDiaryStore = create<DiaryState>()(
     (set, get) => ({
       entries: [],
       goals: DEFAULT_GOALS,
+      profile: undefined,
+      onboarded: false,
       hydrated: false,
       seeded: false,
 
@@ -67,7 +73,11 @@ export const useDiaryStore = create<DiaryState>()(
 
       setGoals: (g) => set((s) => ({ goals: { ...s.goals, ...g } })),
 
-      resetAll: () => set({ entries: [], goals: DEFAULT_GOALS, seeded: true }),
+      completeOnboarding: (profile) =>
+        set({ profile, goals: computeGoals(profile), onboarded: true }),
+
+      resetAll: () =>
+        set({ entries: [], goals: DEFAULT_GOALS, seeded: true, onboarded: false, profile: undefined }),
 
       seedIfEmpty: () => {
         const { entries, seeded } = get();
@@ -88,7 +98,13 @@ export const useDiaryStore = create<DiaryState>()(
     {
       name: 'nutrisnap-diary-v1',
       storage: createJSONStorage(() => AsyncStorage),
-      partialize: (s) => ({ entries: s.entries, goals: s.goals, seeded: s.seeded }),
+      partialize: (s) => ({
+        entries: s.entries,
+        goals: s.goals,
+        seeded: s.seeded,
+        profile: s.profile,
+        onboarded: s.onboarded,
+      }),
       onRehydrateStorage: () => (state) => {
         // Mark hydrated and seed demo data on very first launch.
         state?.seedIfEmpty();

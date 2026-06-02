@@ -1,3 +1,4 @@
+import { Redirect } from 'expo-router';
 import { useMemo } from 'react';
 import { ActivityIndicator, Alert, Platform, StyleSheet, Text, View } from 'react-native';
 
@@ -24,6 +25,7 @@ function greeting(): string {
 
 export default function DiaryScreen() {
   const hydrated = useDiaryStore((s) => s.hydrated);
+  const onboarded = useDiaryStore((s) => s.onboarded);
   const entries = useDiaryStore((s) => s.entries);
   const goals = useDiaryStore((s) => s.goals);
   const removeEntry = useDiaryStore((s) => s.removeEntry);
@@ -58,6 +60,8 @@ export default function DiaryScreen() {
       </Screen>
     );
   }
+
+  if (!onboarded) return <Redirect href="/onboarding" />;
 
   return (
     <Screen>

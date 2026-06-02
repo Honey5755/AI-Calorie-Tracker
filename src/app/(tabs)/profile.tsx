@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { Alert, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Card, SectionLabel } from '@/components/Card';
@@ -50,6 +51,7 @@ function Stepper({
 }
 
 export default function ProfileScreen() {
+  const router = useRouter();
   const goals = useDiaryStore((s) => s.goals);
   const setGoals = useDiaryStore((s) => s.setGoals);
   const resetAll = useDiaryStore((s) => s.resetAll);
@@ -119,6 +121,11 @@ export default function ProfileScreen() {
           </View>
         </View>
       </Card>
+
+      <Pressable onPress={() => router.push('/onboarding')} style={({ pressed }) => [styles.linkBtn, pressed && { opacity: 0.6 }]}>
+        <Ionicons name="calculator-outline" size={16} color={colors.brand} />
+        <Text style={[styles.linkText, { color: colors.brand }]}>Recalculate goals (quiz)</Text>
+      </Pressable>
 
       <Pressable onPress={() => setGoals(DEFAULT_GOALS)} style={({ pressed }) => [styles.linkBtn, pressed && { opacity: 0.6 }]}>
         <Ionicons name="refresh" size={16} color={colors.textDim} />
